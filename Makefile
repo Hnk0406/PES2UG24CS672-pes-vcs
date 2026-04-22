@@ -18,9 +18,10 @@ pes: $(OBJS)
 test_objects: test_objects.o object.o
 	$(CC) -o $@ $^ $(LDFLAGS)
 
-test_tree: test_tree.o object.o tree.o
+test_tree: test_tree.o object.o tree.o index.o
 	$(CC) -o $@ $^ $(LDFLAGS)
-
+index.o: index.c index.h
+	gcc -Wall -Wextra -O2 -c index.c -o index.o
 # ─── Convenience targets ────────────────────────────────────────────────────
 
 .PHONY: all clean test test-unit test-integration

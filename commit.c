@@ -221,5 +221,14 @@ int commit_create(const char *message, ObjectID *commit_id_out) {
     snprintf(c.message, sizeof(c.message), "%s", message);
  
 
+ 
+    // 7. Update HEAD to point to new commit
+    if (head_update(&commit_id) != 0) return -1;
+ 
+    if (commit_id_out) *commit_id_out = commit_id;
+ 
+    char hex[HASH_HEX_SIZE + 1];
+    hash_to_hex(&commit_id, hex);
+    printf("[main %.7s] %s\n", hex, message);
     return 0;
 }

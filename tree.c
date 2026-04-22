@@ -180,10 +180,14 @@ static int write_tree_level(IndexEntry **entries, int count,
 
 int tree_from_index(ObjectID *id_out)
 {
-    Index index;
-    if (index_load(&index) != 0) return -1;
+    /* Index is ~5 MB — allocate on heap to avoid stack overflow */
+    Index *index = malloc(sizeof(Index));
+    if (!index) return -1;
 
-    if (index.count == 0) {
+    if (index_load(index) != 0) { free(index); return -1; }
+
+    if (index->count == 0) {
+        free(index);
         /* empty tree */
         Tree empty;
         empty.count = 0;
@@ -197,8 +201,10 @@ int tree_from_index(ObjectID *id_out)
 
     /* build pointer array (index is already sorted by path) */
     IndexEntry *ptrs[MAX_INDEX_ENTRIES];
-    for (int i = 0; i < index.count; i++)
-        ptrs[i] = &index.entries[i];
+    for (int i = 0; i < index->count; i++)
+        ptrs[i] = &index->entries[i];
 
-    return write_tree_level(ptrs, index.count, "", id_out);
+    int rc = write_tree_level(ptrs, index->count, "", id_out);
+    free(index);
+    return rc;
 }

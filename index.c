@@ -228,3 +228,19 @@ int index_add(Index *index, const char *path) {
 
     return index_save(index);
 }
+
+// ─── Stack size fix ───────────────────────────────────────────────────────────
+// Index structs are ~5.3 MB each. pes.c (provided, unmodifiable) allocates them
+// on the stack, which overflows the default 8 MB Linux stack limit.
+// This constructor runs before main() and raises the limit to 64 MB.
+#include <sys/resource.h>
+__attribute__((constructor))
+static void raise_stack_limit(void) {
+    struct rlimit rl;
+    if (getrlimit(RLIMIT_STACK, &rl) == 0) {
+        if (rl.rlim_cur < 64 * 1024 * 1024) {
+            rl.rlim_cur = 64 * 1024 * 1024;
+            setrlimit(RLIMIT_STACK, &rl);
+        }
+    }
+}

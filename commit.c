@@ -201,10 +201,20 @@ int commit_create(const char *message, ObjectID *commit_id_out) {
         return -1;
     }
  
-
+    // 2. Populate Commit struct
+    Commit c;
+    memset(&c, 0, sizeof(c));
+    c.tree = tree_id;
  
-    char hex[HASH_HEX_SIZE + 1];
-    hash_to_hex(&commit_id, hex);
-    printf("[main %.7s] %s\n", hex, message);
+    // 3. Try to read current HEAD as parent
+    ObjectID parent_id;
+    if (head_read(&parent_id) == 0) {
+        c.parent = parent_id;
+        c.has_parent = 1;
+    } else {
+        c.has_parent = 0;
+    }
+ 
+
     return 0;
 }
